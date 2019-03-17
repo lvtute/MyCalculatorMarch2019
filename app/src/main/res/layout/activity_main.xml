@@ -16,12 +16,13 @@
         android:padding="40dp">
 
 
-        <TextView
-            android:id="@+id/tv_math"
+        <EditText
+            android:id="@+id/edt_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="right"
             android:text="0"
+            android:background="@null"
             android:textSize="40sp" />
 
         <TextView
@@ -61,16 +62,16 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="("
+                    android:text="()"
                     android:theme="@style/MyButton" />
 
                 <Button
-                    android:id="@+id/btn_close"
+                    android:id="@+id/btn_negative"
                     style="@style/Widget.AppCompat.Button.Borderless"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text=")"
+                    android:text="+/-"
                     android:theme="@style/MyButton" />
 
                 <Button

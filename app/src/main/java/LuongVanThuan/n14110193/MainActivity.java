@@ -6,11 +6,20 @@
 
 package LuongVanThuan.n14110193;
 
+import android.app.Application;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import net.objecthunter.exp4j.Expression;
+import net.objecthunter.exp4j.ExpressionBuilder;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -22,15 +31,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button btn4, btn5, btn6, btnMulti;
     Button btn1, btn2, btn3, btnSubstract, btnAdd, btnResult;
     Button btn0, btnDot, btnPi;
+    Button btnNegative;
 
-    TextView screenAns, screenMath;
+    TextView screenAns;
+    EditText editText;
 
-    StringBuilder textMath = new StringBuilder("");
-    StringBuilder textAns = new StringBuilder("0");
-    StringBuilder screenTextMath = new StringBuilder("");
-    double num1 = 0, num2 = 0, ans = 0;
-    //char mask = ' ';
-    int checkSubmit = 0;
+    private boolean isNumber = false;
+    private boolean lastDot = false;
+    private boolean stateError = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,13 +48,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mapping();
 
+        // Hiding and disable keyboard
+        editText.setRawInputType(InputType.TYPE_NULL);
+        editText.addTextChangedListener(textWatcher);
+
 
     }
 
     public void mapping() {
         //Control
         screenAns = (TextView) findViewById(R.id.tv_result);
-        screenMath = (TextView) findViewById(R.id.tv_math);
+        editText = (EditText) findViewById(R.id.edt_input);
+
+        btnNegative = findViewById(R.id.btn_negative);
+        btnNegative.setOnClickListener(this);
 
         btn0 = (Button) findViewById(R.id.btn_0);
         btn0.setOnClickListener(this);
@@ -102,8 +118,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnDel = (Button) findViewById(R.id.btn_del);
         btnDel.setOnClickListener(this);
 
-        btnClose = (Button) findViewById(R.id.btn_close);
-        btnClose.setOnClickListener(this);
 
         btnOpen = (Button) findViewById(R.id.btn_open);
         btnOpen.setOnClickListener(this);
@@ -138,319 +152,288 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btnResult.setOnClickListener(this);
     }
 
-    public void error() {
-        screenAns.setText("Math Error !");
-        textAns = textMath = screenTextMath = new StringBuilder("");
-    }
-
-    public void submit(String[] elementMath) {
-        InfixToPostfix ITP = new InfixToPostfix();
-        if (textMath.length() > 0) {
-            try {
-                if (!ITP.check_error)
-                    elementMath = ITP.processString(textMath.toString());        //	split expression to element
-                if (!ITP.check_error)
-                    elementMath = ITP.postfix(elementMath);        // 	format elements to postfix
-                if (!ITP.check_error)
-                    textAns = new StringBuilder(ITP.valueMath(elementMath));        // get result
-                screenAns.setText(textAns);
-
-                screenTextMath = new StringBuilder();
-                textMath = new StringBuilder();
-                checkSubmit = 1;
-
-            } catch (Exception e) {
-                error();
-            }
-            if (ITP.check_error) error();
-        }
-    }
 
     @Override
     public void onClick(View view) {
         int id = view.getId();
-        String elementMath[] = null;
 
-
-        if (id == R.id.btn_0) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
+        switch (id) {
+            case R.id.btn_0:
+                append("0");
+                isNumber = true;
+                break;
+            case R.id.btn_1:
+                append("1");
+                isNumber = true;
+                break;
+            case R.id.btn_2:
+                append("2");
+                isNumber = true;
+                break;
+            case R.id.btn_3:
+                append("3");
+                isNumber = true;
+                break;
+            case R.id.btn_4:
+                append("4");
+                isNumber = true;
+                break;
+            case R.id.btn_5:
+                append("5");
+                isNumber = true;
+                break;
+            case R.id.btn_6:
+                append("6");
+                isNumber = true;
+                break;
+            case R.id.btn_7:
+                append("7");
+                isNumber = true;
+                break;
+            case R.id.btn_8:
+                append("8");
+                isNumber = true;
+                break;
+            case R.id.btn_9:
+                append("9");
+                isNumber = true;
+                break;
+            case R.id.btn_add:
+                if (!isEmpty()) {
+                    if (endsWithOperatore())
+                        replace("+");
+                    else
+                        append("+");
+                    isNumber = false;
+                    lastDot = false;
+                    break;
                 }
-                textMath.append("0");
-                screenTextMath.append("0");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_1) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
+            case R.id.btn_mul:
+                if (!isEmpty()) {
+                    if (endsWithOperatore())
+                        replace("*");
+                    else
+                        append("*");
+                    isNumber = false;
+                    lastDot = false;
+                    break;
                 }
-                textMath.append("1");
-                screenTextMath.append("1");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_2) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("2");
-                screenTextMath.append("2");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_3) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("3");
-                screenTextMath.append("3");
-            }
-
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_4) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("4");
-                screenTextMath.append("4");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_5) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("5");
-                screenTextMath.append("5");
-            }
-            screenMath.setText(screenTextMath.toString());
-        } else if (id == R.id.btn_6) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("6");
-                screenTextMath.append("6");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_7) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("7");
-                screenTextMath.append("7");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_8) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("8");
-                screenTextMath.append("8");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_9) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("9");
-                screenTextMath.append("9");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_dot) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append(".");
-                screenTextMath.append(".");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_pi) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("π");
-                screenTextMath.append("π");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_add) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("+");
-                screenTextMath.append("+");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_sub) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("-");
-                screenTextMath.append("-");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_mul) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("*");
-                screenTextMath.append("*");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_div) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("/");
-                screenTextMath.append("/");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_pow) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("^(");
-                screenTextMath.append("^(");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_root_square) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("@");
-                screenTextMath.append("√");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_sin) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("s(");
-                screenTextMath.append("Sin(");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_cos) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("c(");
-                screenTextMath.append("Cos(");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_tan) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("t(");
-                screenTextMath.append("Tan(");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_open) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append("(");
-                screenTextMath.append("(");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_close) {
-            if (screenTextMath.length() < 48) {    //if length < 48
-                if (checkSubmit == 1) {
-                    screenTextMath = new StringBuilder("");
-                    textMath = new StringBuilder("");
-                    checkSubmit = 0;
-                }
-                textMath.append(")");
-                screenTextMath.append(")");
-            }
-            screenMath.setText(screenTextMath);
-        } else if (id == R.id.btn_result) {
-            submit(elementMath);
-        } else if (id == R.id.btn_clear) {
-            textMath = new StringBuilder("");
-            screenTextMath = new StringBuilder("");
-            textAns = new StringBuilder("0");
-            screenAns.setText(textAns);
-            screenMath.setText("|");
-        } else if (id == R.id.btn_del) {
-            if (screenMath.length() > 0) {
-                char c = textMath.charAt(textMath.length() - 1);
-                if (textMath.length() > 1 && c == '(' && textMath.charAt(textMath.length() - 2) == '^') {
-                    screenTextMath = new StringBuilder(screenTextMath.substring(0, screenTextMath.length() - 2));
-                    textMath = new StringBuilder(textMath.substring(0, textMath.length() - 2));
-                } else if (textMath.length() > 1 && c == '(' && (textMath.charAt(textMath.length() - 2) == 's' || textMath.charAt(textMath.length() - 2) == 'c' || textMath.charAt(textMath.length() - 2) == 't')) {
-                    textMath = new StringBuilder(textMath.substring(0, textMath.length() - 2));
-                    screenTextMath = new StringBuilder(screenTextMath.substring(0, screenTextMath.length() - 4));
+            case R.id.btn_sub:
+                if (!isEmpty()) {
+                    if (endsWithOperatore())
+                        replace("-");
+                    else
+                        append("-");
+                    isNumber = false;
+                    lastDot = false;
+                    break;
                 } else {
-                    textMath = new StringBuilder(textMath.substring(0, textMath.length() - 1));
-                    screenTextMath = new StringBuilder(screenTextMath.substring(0, screenTextMath.length() - 1));
+                    append("-");
+                    Toast.makeText(this.getApplicationContext(), "hihi",
+                            Toast.LENGTH_LONG).show();
+                    break;
                 }
-                screenMath.setText(screenTextMath);
-            }
+            case R.id.btn_div:
+                if (!isEmpty()) {
+                    if (endsWithOperatore())
+                        replace("/");
+                    else
+                        append("/");
+                    isNumber = false;
+                    lastDot = false;
+                    break;
+                }
+            case R.id.btn_dot:
+                if (isNumber && !stateError && !lastDot) {
+                    append(".");
+                    Toast.makeText(this.getApplicationContext(), "hihi",
+                            Toast.LENGTH_LONG).show();
+                    isNumber = false;
+                    lastDot = true;
+                } else if (isEmpty()) {
+                    append("0.");
+                    isNumber = false;
+                    lastDot = true;
+                }
+                break;
+
+            case R.id.btn_pow:
+                if (!isEmpty()) {
+                    if (endsWithOperatore())
+                        replace("^");
+                    else
+                        append("^");
+                    isNumber = false;
+                    lastDot = false;
+                    break;
+                }
+            case R.id.btn_root_square:
+//                if (!isEmpty()) {
+//                    if (endsWithOperatore())
+//                        append("sqrt(");
+//                    else
+                append("√(");
+                isNumber = false;
+                lastDot = false;
+                break;
+//                }
+            case R.id.btn_del:
+                delete();
+                break;
+            case R.id.btn_clear:
+                clear();
+                break;
+            case R.id.btn_open:
+                bracket();
+                break;
+            case R.id.btn_result:
+                calculate(true);
+                break;
+
+            case R.id.btn_pi:
+                append("π");
+                isNumber = true;
+                break;
+            case R.id.btn_factorial:
+                append("!");
+
+            case R.id.btn_sin:
+                append("sin(");
+            default:
+                break;
+
 
         }
     }
+
+    private void appendsing(String str, int index) {
+
+        editText.getText().replace(index, index + 1, str);
+    }
+
+    private void calculate(boolean isequlclick) {
+
+        String input = getinput();
+        try {
+            if (!isEmpty() && !endsWithOperatore()) {
+//                if (input.contains("x")) {
+//                    input = input.replaceAll("x", "*");
+//                }
+
+//                if(input.contains("\u00F7")){
+//                    input=input.replaceAll("\u00F7","/");
+//                }
+//                if (input.contains("π")) {
+//                    input = input.replaceAll("π", "pi");
+//                }
+                if (input.contains("√")) {
+                    input = input.replaceAll("√", "sqrt");
+                }
+                Expression expression = new ExpressionBuilder(input)
+                        .variables("π")
+                        .build()
+                        .setVariable("π", Math.PI);
+
+                double result = expression.evaluate();
+
+
+                if (isequlclick) {
+                    editText.setText(standardizeDouble(result));
+//                    editText.setText(String.valueOf(result));
+                    screenAns.setText("");
+                } else
+                    screenAns.setText(standardizeDouble(result));
+//                    screenAns.setText(String.valueOf(result));
+            } else screenAns.setText("");
+        } catch (Exception e) {
+            stateError = true;
+            isNumber = false;
+        }
+
+    }
+
+    private void bracket() {
+        if ((!stateError && !isEmpty() && !endsWithbracket() && isNumber) || isclosed()) {
+            append("*(");
+        } else if (isEmpty() || endsWithOperatore() || endsWithbracket()) {
+            append("(");
+        } else if (!isEmpty() && !endsWithbracket()) {
+            append(")");
+        }
+    }
+
+    private boolean isclosed() {
+        return getinput().endsWith(")");
+    }
+
+    private boolean endsWithbracket() {
+        return getinput().endsWith("(");
+    }
+
+    private void append(String str) {
+        this.editText.getText().append(str);
+    }
+
+
+    private String getinput() {
+        return this.editText.getText().toString();
+    }
+
+    private boolean isEmpty() {
+        return getinput().isEmpty();
+    }
+
+    private boolean endsWithOperatore() {
+        return getinput().endsWith("+") || getinput().endsWith("-") || getinput().endsWith("/") || getinput().endsWith("*");
+    }
+
+    private void replace(String str) {
+        editText.getText().replace(getinput().length() - 1, getinput().length(), str);
+    }
+
+    private void clear() {
+        lastDot = false;
+        isNumber = false;
+        stateError = false;
+        editText.getText().clear();
+    }
+
+    private void delete() {
+        if (!isEmpty()) {
+            if (getinput().endsWith("sin(")||getinput().endsWith("cos(")
+                    ||getinput().endsWith("tan(")){
+                this.editText.getText().delete(getinput().length() - 4, getinput().length());
+            }
+            else{//default
+                this.editText.getText().delete(getinput().length() - 1, getinput().length());
+            }
+
+
+        } else clear();
+    }
+
+    public String standardizeDouble(double num) {
+        int a = (int) num;
+        if (a == num)
+            return Integer.toString(a);
+        else return Double.toString(num);
+    }
+
+    TextWatcher textWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            calculate(false);
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    };
 }
 
