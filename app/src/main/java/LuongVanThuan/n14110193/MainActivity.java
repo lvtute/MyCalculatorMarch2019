@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
+import net.objecthunter.exp4j.operator.Operator;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -36,9 +37,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TextView screenAns;
     EditText editText;
 
-    private boolean isNumber = false;
-    private boolean lastDot = false;
-    private boolean stateError = false;
+    private boolean isNumber = false;//if last char is number or not
+    private boolean lastDot = false;// if last char is dot or not
+    private boolean stateError = false; // if current state is error or not
 
 
     @Override
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mapping();
 
+        clear();
         // Hiding and disable keyboard
         editText.setRawInputType(InputType.TYPE_NULL);
         editText.addTextChangedListener(textWatcher);
@@ -60,8 +62,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         screenAns = (TextView) findViewById(R.id.tv_result);
         editText = (EditText) findViewById(R.id.edt_input);
 
-        btnNegative = findViewById(R.id.btn_negative);
-        btnNegative.setOnClickListener(this);
+
 
         btn0 = (Button) findViewById(R.id.btn_0);
         btn0.setOnClickListener(this);
@@ -90,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         btn8 = (Button) findViewById(R.id.btn_8);
         btn8.setOnClickListener(this);
+
 
         btn9 = (Button) findViewById(R.id.btn_9);
         btn9.setOnClickListener(this);
@@ -201,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_add:
                 if (!isEmpty()) {
                     if (endsWithOperatore())
-                        replace("+");
+                        replace("+");//replace if last char is operator
                     else
                         append("+");
                     isNumber = false;
@@ -295,10 +297,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 isNumber = true;
                 break;
             case R.id.btn_factorial:
-                append("!");
+                if (!isEmpty()){
+                    if (!endsWithOperatore()){
+                        append("!");
+                    }
+                }
+                break;
 
             case R.id.btn_sin:
                 append("sin(");
+                break;
+            case R.id.btn_cos:
+                append("cos(");
+                break;
+            case R.id.btn_tan:
+                append("tan(");
+                break;
             default:
                 break;
 
@@ -306,12 +320,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void appendsing(String str, int index) {
+    Operator factorial = new Operator("!", 1, true, Operator.PRECEDENCE_POWER + 1) {
 
-        editText.getText().replace(index, index + 1, str);
-    }
+        @Override
+        public double apply(double... args) {
+            final int arg = (int) args[0];
+            if ((double) arg != args[0]) {
+                throw new IllegalArgumentException("Operand for factorial has to be an integer");
+            }
+            if (arg < 0) {
+                throw new IllegalArgumentException("The operand of the factorial can not be less than zero");
+            }
+            double result = 1;
+            for (int i = 1; i <= arg; i++) {
+                result *= i;
+            }
+            return result;
+        }
+    };
+//    private void appendsing(String str, int index) {
+//
+//        editText.getText().replace(index, index + 1, str);
+//    }
 
-    private void calculate(boolean isequlclick) {
+    private void calculate(boolean isequalclick) {
 
         String input = getinput();
         try {
@@ -331,13 +363,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 Expression expression = new ExpressionBuilder(input)
                         .variables("π")
+                        .operator(factorial)
                         .build()
                         .setVariable("π", Math.PI);
 
                 double result = expression.evaluate();
 
 
-                if (isequlclick) {
+                if (isequalclick) {
                     editText.setText(standardizeDouble(result));
 //                    editText.setText(String.valueOf(result));
                     screenAns.setText("");
@@ -384,7 +417,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private boolean endsWithOperatore() {
-        return getinput().endsWith("+") || getinput().endsWith("-") || getinput().endsWith("/") || getinput().endsWith("*");
+        return getinput().endsWith("+") || getinput().endsWith("-") || getinput().endsWith("/") || getinput().endsWith("*")
+                ||getinput().endsWith("^")||getinput().endsWith("!");
     }
 
     private void replace(String str) {
